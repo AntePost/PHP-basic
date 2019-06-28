@@ -1,3 +1,7 @@
+<?php
+include './engine/session_start.php'
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -58,6 +62,9 @@
         <img src="<?=$product['path_to_image']?>" alt="image number <?=$product['id']?>">
         <p>Price: <?=$product['price']?></p>
         <p><?=$product['description']?></p>
+        <?php if($_SESSION['isAuth']) : ?>
+            <button id="add_to_cart_button" data-product_id="<?=$product['id']?>">Add to cart</button>
+        <?php endif; ?>
     </div>
     
     <div class="reviews_wrapper">
@@ -87,5 +94,30 @@
         <textarea name="text" cols="30" rows="10"></textarea>
         <input type="submit">
     </form>
+
+    <script>
+    
+    const addToCartButton = document.getElementById('add_to_cart_button');
+    if (addToCartButton !== null) {
+        addToCartButton.addEventListener('click', (event) => {
+            const data = {
+                product_id: +event.target.dataset.product_id,
+            }           
+            
+            fetch('./engine/add_to_cart_logic.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data),
+            })
+                .then(response => response.json())
+                .then(json => {                  
+                    localStorage.setItem('cart', JSON.stringify(json));
+                });
+        });
+    }
+
+    </script>
 </body>
 </html>
