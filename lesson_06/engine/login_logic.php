@@ -1,48 +1,39 @@
 <?php
 
-include('./session_start.php');
-include('./functions.php');
+include './session_start.php';
+include './functions.php';
+include './../config/config.php';
+
+$redirectLocation = './../login.php';
 
 // Check if username field is empty
-if (!empty($_POST['username'])) {
-    $username = strip_tags(htmlspecialchars($_POST['username']));
-} else {
-    $_SESSION['login_message'] = 'Username field can\'t be empty';
-    header("Location: ./../login.php");
-    die;
-}
+$message = 'Username field can\'t be empty';
+$username = checkIfFieldIsEmpty($_POST['username'], $message, 'login_message');
 
 // Check if password field is empty
-if (!empty($_POST['password'])) {
-    $password = strip_tags(htmlspecialchars($_POST['password']));
-} else {
-    $_SESSION['login_message'] = 'Password field can\'t be empty';
-    header("Location: ./../login.php");
-    die;
-}
+$message = 'Password field can\'t be empty';
+$password = checkIfFieldIsEmpty($_POST['password'], $message, 'login_message');
 
 // Get relevant user
-$relevantUser = extractFromMYSQL('localhost', 'root', 'mysql', 'php_basic', "SELECT * FROM users WHERE username = '$username'");
+$relevantUserQuery = "SELECT * FROM users WHERE username = '$username'";
+$relevantUser = extractOneRowFromMYSQL(dbAccess['addr'], dbAccess['username'], dbAccess['password'], dbAccess['DBName'], $relevantUserQuery);
 
 // Check if user exists
 if (empty($relevantUser)) {
-    $_SESSION['login_message'] = 'Wrong login';
-    header("Location: ./../login.php");
-    die;
+    $message = 'Wrong login';
+    SetMessageRedirectAndDie('login_message', $message, $redirectLocation);
 }
 
 // Check if password matches
-$doesMatch = password_verify($password, $relevantUser[0]['password_hash']);
+$doesMatch = password_verify($password, $relevantUser['password_hash']);
 
 if ($doesMatch) {
-    $_SESSION['login_message'] = 'Login successful';
     $_SESSION['isAuth'] = true;
     $_SESSION['username'] = $username;
-    $_SESSION['user_id'] = $relevantUser[0]['id'];
-    header("Location: ./../login.php");
-    die; 
+    $_SESSION['user_id'] = $relevantUser['id'];
+    $message = 'Login successful';
+    SetMessageRedirectAndDie('login_message', $message, $redirectLocation);
 } else {
-    $_SESSION['login_message'] = 'Wrong password';
-    header("Location: ./../login.php");
-    die;
+    $message = 'Wrong password';
+    SetMessageRedirectAndDie('login_message', $message, $redirectLocation);
 }

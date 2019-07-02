@@ -65,9 +65,60 @@ function extractFromMYSQL($addr, $username, $password, $DBName, $query) {
     return $array;
 }
 
+function extractOneRowFromMYSQL($addr, $username, $password, $DBName, $query) {
+    $link = mysqli_connect($addr, $username, $password, $DBName);
+
+    $result = mysqli_query($link, $query);
+
+    mysqli_close($link);
+
+    return mysqli_fetch_assoc($result);
+}
+
 function updateMYSQL($addr, $username, $password, $DBName, $query) {
     $link = mysqli_connect($addr, $username, $password, $DBName);
     $result = mysqli_query($link, $query);
     mysqli_close($link);
     return $result;
+}
+
+function protectAgainstMYSQLInject($str) {
+    return strip_tags(htmlspecialchars($str));
+}
+
+function parseJSON() {
+    $requestContent = file_get_contents("php://input");
+    return json_decode($requestContent, true);
+}
+
+function updateCartExtractAndSendJSON($firstQuery) {
+    updateMYSQL(dbAccess['addr'], dbAccess['username'], dbAccess['password'], dbAccess['DBName'], $firstQuery);
+
+    global $userId;
+    $extactCartQuery = "SELECT * FROM cart INNER JOIN products ON cart.product_id = products.id WHERE user_id = '$userId'";
+    $cartProducts = extractFromMYSQL(dbAccess['addr'], dbAccess['username'], dbAccess['password'], dbAccess['DBName'], $extactCartQuery);
+
+    echo json_encode($cartProducts);
+}
+
+function SetMessageRedirectAndDie($messageType, $message, $location) {
+    $_SESSION[$messageType] = $message;
+    header("Location: $location");
+    die;
+}
+
+function checkIfFieldIsEmpty($field, $message, $messageType) {
+    if (!empty($field)) {
+        return protectAgainstMYSQLInject($field);
+    } else {
+        global $redirectLocation;
+        SetMessageRedirectAndDie($messageType, $message, $redirectLocation);
+    }
+}
+
+function checkFieldWithRegex($str, $message) {
+    if (preg_match('/[a-zA-Z0-9]/', $str) === 0) {
+        global $redirectLocation;
+        SetMessageRedirectAndDie('register_message', $message, $redirectLocation);
+    }
 }
