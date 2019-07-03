@@ -18,7 +18,7 @@ include './engine/session_start.php'
 
         <label for="password">Enter a password</label>
         <input type="password" name="password" id="password">
-        <p>Only latin characters and numbers. Minimum 8 symbols</p>
+        <p>Only latin characters and numbers. Minimum 4 symbols</p>
 
         <input type="submit" value="Register">
 
