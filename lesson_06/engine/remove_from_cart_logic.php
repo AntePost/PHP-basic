@@ -6,7 +6,7 @@ include './../config/config.php';
 
 // Recieve request
 $decoded = parseJSON();
-$productId = 1; //protectAgainstMYSQLInject($decoded['product_id']);
+$productId = protectAgainstMYSQLInject($decoded['product_id']);
 $userId = $_SESSION['user_id'];
 
 // Check quantity of product
